@@ -6,9 +6,89 @@ Mermaid can render sequence diagrams.
 
 ```mermaid-example
 sequenceDiagram
-    Alice->>John: Hello John, how are you?
-    John-->>Alice: Great!
-    Alice-)John: See you later!
+    actor User
+    participant Frontend
+    participant Backend
+    participant Database
+    participant SocialAuth
+    participant EmailService
+
+    User->>Frontend: 訪問登入頁面
+    Frontend->>User: 顯示登入選項 (FB, Gmail, Apple ID, 一般登入, 註冊)
+    
+    alt 社交媒體登入 (FB/Gmail/Apple ID)
+        User->>Frontend: 選擇社交媒體登入
+        Frontend->>User: 顯示帳號密碼輸入介面
+        User->>Frontend: 輸入帳號密碼
+        Frontend->>Backend: 發送登入請求
+        Backend->>Database: 驗證用戶信息
+        Database-->>Backend: 返回驗證結果
+        alt 驗證成功
+            Backend->>SocialAuth: 請求社交媒體授權
+            SocialAuth-->>Backend: 返回授權結果
+            alt 授權成功
+                Backend->>Frontend: 返回登入成功信息和會話令牌
+                Frontend->>User: 顯示登入成功，重定向到主頁
+            else 授權失敗
+                Backend->>Frontend: 返回授權失敗信息
+                Frontend->>User: 顯示錯誤信息
+            end
+        else 驗證失敗
+            Backend->>Frontend: 返回驗證失敗信息
+            Frontend->>User: 顯示錯誤信息
+        end
+    else 一般登入
+        User->>Frontend: 選擇一般登入
+        Frontend->>User: 顯示電子郵件輸入介面
+        User->>Frontend: 輸入電子郵件
+        Frontend->>User: 顯示登入選項（密碼登入或郵件連結登入）
+        alt 密碼登入
+            User->>Frontend: 選擇密碼登入
+            Frontend->>User: 顯示密碼輸入介面
+            User->>Frontend: 輸入密碼
+            Frontend->>Backend: 發送登入請求
+            Backend->>Database: 驗證用戶信息
+            Database-->>Backend: 返回驗證結果
+            alt 驗證成功
+                Backend->>Frontend: 返回登入成功信息和會話令牌
+                Frontend->>User: 顯示登入成功，重定向到主頁
+            else 驗證失敗
+                Backend->>Frontend: 返回驗證失敗信息
+                Frontend->>User: 顯示錯誤信息
+            end
+        else 郵件連結登入
+            User->>Frontend: 選擇郵件連結登入
+            Frontend->>Backend: 請求發送登入連結
+            Backend->>EmailService: 生成並發送登入連結
+            EmailService-->>User: 發送含登入連結的郵件
+            User->>Frontend: 點擊登入連結
+            Frontend->>Backend: 驗證登入連結
+            Backend->>Database: 驗證連結有效性
+            Database-->>Backend: 返回驗證結果
+            alt 驗證成功
+                Backend->>Frontend: 返回登入成功信息和會話令牌
+                Frontend->>User: 顯示登入成功，重定向到主頁
+            else 驗證失敗
+                Backend->>Frontend: 返回驗證失敗信息
+                Frontend->>User: 顯示錯誤信息
+            end
+        end
+    else 忘記密碼
+        User->>Frontend: 選擇忘記密碼
+        Frontend->>User: 顯示電子郵件輸入界面
+        User->>Frontend: 輸入電子郵件
+        Frontend->>Backend: 發送重設密碼請求
+        Backend->>EmailService: 生成並發送重設密碼連結
+        EmailService-->>User: 發送含重設連結的郵件
+        User->>Frontend: 點擊重設連結
+        Frontend->>User: 顯示新密碼輸入界面
+        User->>Frontend: 輸入新密碼
+        Frontend->>Backend: 發送新密碼
+        Backend->>Database: 更新密碼
+        Database-->>Backend: 確認密碼更新
+        Backend->>Frontend: 返回密碼更新成功信息
+        Frontend->>User: 顯示密碼更新成功，返回登入頁面
+    end
 ```
 
 ```note
